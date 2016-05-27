@@ -4,7 +4,7 @@
 // GLEW
 #define GLEW_STATIC
 #include <GL/glew.h>
-
+#include <GL/freeglut.h>
 // GLFW
 #include <GLFW/glfw3.h>
 
@@ -40,11 +40,68 @@ bool firstMouse = true;
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
+//#define VIEWPORT_WIDTH              1280
+//#define VIEWPORT_HEIGHT             800
+
+void glut_init(void)
+{
+	char *myargv[1];
+	int myargc = 1;
+	myargv[0] = "intel realsense";
+	glutInit(&myargc, myargv);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+	glutInitWindowSize(screenWidth, screenHeight);
+}
+
+void renderBitmapString(float x, float y, void *font, const char *string) {
+	const char *c;
+	glRasterPos2f(x, y);
+	for (c = string; *c != '\0'; c++) {
+		glutBitmapCharacter(font, *c);
+	}
+}
+
+void drawFps(int m_fps=30)
+{
+#if 0
+	std::string line = "FPS = ";
+	line.append(std::to_string(m_fps));
+	//glPushAttrib(GL_CURRENT_BIT);
+	//glDisable(GL_LIGHTING);
+	glColor3f(1.0, 0.f, 0.f);
+	renderBitmapString(200, 200, GLUT_BITMAP_8_BY_13, line.c_str());
+	//glEnable(GL_LIGHTING);
+	glDisable(GL_LIGHTING);
+	std::string line = "--- PAUSE ---";
+	glColor3f(1.f, 0.f, 0.f);
+	renderBitmapString(0.1f, 0.5f, GLUT_BITMAP_TIMES_ROMAN_24, line.c_str());
+	glEnable(GL_LIGHTING);
+#endif
+
+	glColor3f(1.f, 1.f, 1.f);
+	renderBitmapString(0.9f, 0.49f, GLUT_BITMAP_8_BY_13, "Instructions:");
+	renderBitmapString(0.9f, 0.46f, GLUT_BITMAP_8_BY_13, "-------------");
+	renderBitmapString(0.9f, 0.43f, GLUT_BITMAP_8_BY_13, "Full Hands Mode: Via Command Line - Run \"FF_Hands3DViewer.exe -full\"");
+	renderBitmapString(0.9f, 0.40f, GLUT_BITMAP_8_BY_13, "Left Mouse Button - Hold to rotate view");
+	renderBitmapString(0.9f, 0.37f, GLUT_BITMAP_8_BY_13, "Right Mouse Button - Click to reset view");
+	renderBitmapString(0.9f, 0.34f, GLUT_BITMAP_8_BY_13, "Mouse Wheel Up/Down - Zoom in/out");
+	renderBitmapString(0.9f, 0.31f, GLUT_BITMAP_8_BY_13, "F1 - Pause/Play");
+	renderBitmapString(0.9f, 0.28f, GLUT_BITMAP_8_BY_13, "F3 - <Cursor Only> Shorten trail");
+	renderBitmapString(0.9f, 0.25f, GLUT_BITMAP_8_BY_13, "F4 - <Cursor Only> Extend trail");
+
+	//glRasterPos2i(100, 120);
+	//glColor4f(0.0f, 0.0f, 1.0f, 1.0f);
+	//glutBitmapString(GLUT_BITMAP_HELVETICA_18, "text to render");
+}
+
 // The MAIN function, from here we start our application and run our Game loop
-int main()
+int main(int argc, char **argv)
 {
     // Init GLFW
     glfwInit();
+	//glfw has no "drawing text function", so init glut for drawing text
+	glut_init();
+
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -75,8 +132,11 @@ int main()
     Shader shader("shader.vs", "shader.frag");
 
     // Load models
-    Model ourModel(FileSystem::getPath("resources/objects/nanosuit/nanosuit.obj").c_str());
-
+    //Model ourModel(FileSystem::getPath("resources/objects/nanosuit/nanosuit.obj").c_str());
+	//Model ourModel(FileSystem::getPath("resources/objects/cyborg/cyborg.obj").c_str());
+	//Model ourModel(FileSystem::getPath("resources/objects/jeep/jeep1.ms3d").c_str());
+	Model ourModel(FileSystem::getPath("resources/objects/harp/harp.3ds").c_str());
+	//Model ourModel(FileSystem::getPath("resources/objects/monkey/monkey.obj").c_str());
     // Draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -110,6 +170,7 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
         ourModel.Draw(shader);       
 
+		drawFps();
         // Swap the buffers
         glfwSwapBuffers(window);
     }
